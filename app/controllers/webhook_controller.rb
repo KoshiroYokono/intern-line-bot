@@ -1,4 +1,5 @@
 require 'line/bot'
+require 'GiphyClient'
 
 class WebhookController < ApplicationController
   protect_from_forgery except: [:callback] # CSRF対策無効化
@@ -24,10 +25,29 @@ class WebhookController < ApplicationController
       when Line::Bot::Event::Message
         case event.type
         when Line::Bot::Event::MessageType::Text
-          message = {
-            type: 'text',
-            text: event.message['text']
-          }
+
+          begin
+            #Search Endpoint
+            text = event.message['text']
+            jpg_url = replace_to_https(generate_jpg(text))
+
+            if jpg_url.nil? then
+              message = {
+                type: 'text',
+                text: event.message['text']
+              }
+            else
+              message = {
+                type: 'image',
+                originalContentUrl: jpg_url,
+                previewImageUrl: jpg_url
+              }
+            end
+
+          rescue GiphyClient::ApiError => e
+            puts "Exception when calling DefaultApi->gifs_search_get: #{e}"
+          end
+
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
           response = client.get_message_content(event.message['id'])
@@ -38,4 +58,29 @@ class WebhookController < ApplicationController
     }
     head :ok
   end
-end
+
+  def generate_jpg(text)
+  stliped = text.strip
+    case stliped
+    when '魚','fish'
+      return Image::FISH
+    when '深海魚'
+      return Image::DEEPFISH
+    when '悲しい','sad'
+      return Image::SAD
+    when '怒り','angry'
+      return Image::ANGRY
+    else
+      return nil
+    end
+  end
+
+  def replace_to_https(url)
+    return url.sub(/http:/, 'https:')
+  end
+
+  def convert_to_jpg(url)
+    return url.sub(/.gif/,'.jpg')
+  end
+
+ end
