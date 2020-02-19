@@ -58,8 +58,8 @@ class WebhookController < ApplicationController
   end
 
   def generate_jpg(text)
-    stliped_text = text.strip
-    case stliped_text
+    stripped_text = text.strip
+    case stripped_text
     when '魚','fish','さかな','サカナ'
       return Image::FISH
     when '深海魚','しんかいぎょ','シンカイギョ'
