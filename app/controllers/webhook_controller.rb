@@ -30,7 +30,7 @@ class WebhookController < ApplicationController
           ・怒り
           のいずれかを入力してくれ
           スマン m(__)m
-          EOS
+        EOS
         default_message = {
           type: 'text',
           text: "#{message_text.chomp}"
