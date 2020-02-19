@@ -22,9 +22,18 @@ class WebhookController < ApplicationController
     events.each { |event|
       case event
       when Line::Bot::Event::Message
+        message_text = <<~'EOS'
+          そのメッセージには対応していないんや。
+          ・魚
+          ・深海魚
+          ・悲しい
+          ・怒り
+          のいずれかを入力してくれ
+          スマン m(__)m
+          EOS
         default_message = {
           type: 'text',
-          text: "そのメッセージには対応していないんや。\n・魚\n・深海魚\n・悲しい\n・怒り\nのいずれかを入力してくれ\nスマン m(__)m"
+          text: "#{message_text.chomp}"
         }
         case event.type
         when Line::Bot::Event::MessageType::Text
