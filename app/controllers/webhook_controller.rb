@@ -22,20 +22,72 @@ class WebhookController < ApplicationController
     events.each { |event|
       case event
       when Line::Bot::Event::Message
+        message_text = <<~'EOS'
+          そのメッセージには対応していないんや。
+          ・魚
+          ・深海魚
+          ・悲しい
+          ・怒り
+          のいずれかを入力してくれ
+          スマン m(__)m
+        EOS
+        default_message = {
+          type: 'text',
+          text: "#{message_text.chomp}"
+        }
         case event.type
         when Line::Bot::Event::MessageType::Text
-          message = {
-            type: 'text',
-            text: event.message['text']
-          }
+
+          begin
+            #Search Endpoint
+            text = event.message['text']
+            jpg_url = replace_to_https(generate_jpg(text))
+
+            if jpg_url.blank?
+              message = default_message
+            else
+              message = {
+                type: 'image',
+                originalContentUrl: jpg_url,
+                previewImageUrl: jpg_url
+              }
+            end
+
+          rescue GiphyClient::ApiError => e
+            puts "Exception when calling DefaultApi->gifs_search_get: #{e}"
+          end
+
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
-          response = client.get_message_content(event.message['id'])
-          tf = Tempfile.open("content")
-          tf.write(response.body)
+           client.reply_message(event['replyToken'], default_message)
         end
       end
     }
     head :ok
   end
-end
+
+  def generate_jpg(text)
+    stripped_text = text.strip
+    case stripped_text
+    when '魚','fish','さかな','サカナ'
+      return Image::FISH
+    when '深海魚','しんかいぎょ','シンカイギョ'
+      return Image::DEEPFISH
+    when '悲しい','sad'
+      return Image::SAD
+    when '怒り','angry'
+      return Image::ANGRY
+    else
+      return ""
+    end
+  end
+
+  def replace_to_https(url)
+    url.sub(/http:/, 'https:')
+  end
+
+  def convert_to_jpg(url)
+    url.sub(/.gif/,'.jpg')
+  end
+
+ end
