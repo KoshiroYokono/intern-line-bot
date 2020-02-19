@@ -46,5 +46,3 @@ gem 'sinatra'
 gem 'bootsnap', require: false
 
 gem 'listen', group: :development
-
-gem 'GiphyClient'

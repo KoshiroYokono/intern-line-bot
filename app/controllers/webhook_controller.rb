@@ -1,5 +1,4 @@
 require 'line/bot'
-require 'GiphyClient'
 
 class WebhookController < ApplicationController
   protect_from_forgery except: [:callback] # CSRF対策無効化
@@ -23,6 +22,10 @@ class WebhookController < ApplicationController
     events.each { |event|
       case event
       when Line::Bot::Event::Message
+        default_message = {
+          type: 'text',
+          text: "そのメッセージには対応していないんや。\n・魚\n・深海魚\n・悲しい\n・怒り\nのいずれかを入力してくれ\nスマン m(__)m"
+        }
         case event.type
         when Line::Bot::Event::MessageType::Text
 
@@ -31,11 +34,8 @@ class WebhookController < ApplicationController
             text = event.message['text']
             jpg_url = replace_to_https(generate_jpg(text))
 
-            if jpg_url.nil? then
-              message = {
-                type: 'text',
-                text: event.message['text']
-              }
+            if jpg_url.blank?
+              message = default_message
             else
               message = {
                 type: 'image',
@@ -50,9 +50,7 @@ class WebhookController < ApplicationController
 
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
-          response = client.get_message_content(event.message['id'])
-          tf = Tempfile.open("content")
-          tf.write(response.body)
+           client.reply_message(event['replyToken'], default_message)
         end
       end
     }
@@ -60,27 +58,27 @@ class WebhookController < ApplicationController
   end
 
   def generate_jpg(text)
-    stliped = text.strip
-    case stliped
-    when '魚','fish'
+    stliped_text = text.strip
+    case stliped_text
+    when '魚','fish','さかな','サカナ'
       return Image::FISH
-    when '深海魚'
+    when '深海魚','しんかいぎょ','シンカイギョ'
       return Image::DEEPFISH
     when '悲しい','sad'
       return Image::SAD
     when '怒り','angry'
       return Image::ANGRY
     else
-      return nil
+      return ""
     end
   end
 
   def replace_to_https(url)
-    return url.sub(/http:/, 'https:')
+    url.sub(/http:/, 'https:')
   end
 
   def convert_to_jpg(url)
-    return url.sub(/.gif/,'.jpg')
+    url.sub(/.gif/,'.jpg')
   end
 
  end
