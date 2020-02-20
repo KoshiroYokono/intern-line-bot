@@ -43,7 +43,6 @@ class WebhookController < ApplicationController
           begin
             #Search Endpoint
             text = event.message['text']
-            jpg_url = replace_to_https(generate_jpg(text))
 
             api_instance = GiphyClient::DefaultApi.new
             api_key = ENV["GIPHY_API_KEY"]
@@ -82,22 +81,6 @@ class WebhookController < ApplicationController
       end
     }
     head :ok
-  end
-
-  def generate_jpg(text)
-    stripped_text = text.strip
-    case stripped_text
-    when '魚','fish','さかな','サカナ'
-      return Image::FISH
-    when '深海魚','しんかいぎょ','シンカイギョ'
-      return Image::DEEPFISH
-    when '悲しい','sad'
-      return Image::SAD
-    when '怒り','angry'
-      return Image::ANGRY
-    else
-      return ""
-    end
   end
 
   def replace_to_https(url)
