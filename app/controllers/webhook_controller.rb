@@ -59,7 +59,6 @@ class WebhookController < ApplicationController
             result = api_instance.gifs_search_get(api_key, text, opts)
             gif = result.data[0]
             if gif
-              p convert_to_jpg(gif.images.preview_gif.url)
               message = {
                 type: 'image',
                 originalContentUrl: replace_to_https(convert_to_jpg(gif.images.fixed_height.url)),
