@@ -100,10 +100,10 @@ class WebhookController < ApplicationController
               }
 
             else
-               message = {
-                 type: 'text',
-                 text: "画像が見つからんかった\nスマンm(__)m"
-               }
+              message = {
+                type: 'text',
+                text: "画像が見つからんかった\nスマンm(__)m"
+              }
             end
 
           rescue GiphyClient::ApiError => e
@@ -111,7 +111,7 @@ class WebhookController < ApplicationController
           end
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
-           client.reply_message(event['replyToken'], default_message)
+          client.reply_message(event['replyToken'], default_message)
         end
       end
     }
