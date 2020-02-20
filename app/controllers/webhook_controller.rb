@@ -24,18 +24,9 @@ class WebhookController < ApplicationController
     events.each { |event|
       case event
       when Line::Bot::Event::Message
-        message_text = <<~'EOS'
-          そのメッセージには対応していないんや。
-          ・魚
-          ・深海魚
-          ・悲しい
-          ・怒り
-          のいずれかを入力してくれ
-          スマン m(__)m
-        EOS
         default_message = {
           type: 'text',
-          text: "#{message_text.chomp}"
+          text: "そのメッセージには対応していないんや。\nスマン m(__)m"
         }
         case event.type
         when Line::Bot::Event::MessageType::Text
@@ -48,21 +39,66 @@ class WebhookController < ApplicationController
             api_key = ENV["GIPHY_API_KEY"]
 
             opts = {
-              limit: 1,
+              limit: 10,
               offset: 0,
               rating: "g",
               lang: "ja",
               fmt: "json"
             }
 
-            result = api_instance.gifs_search_get(api_key, text, opts)
-            gif = result.data[0]
-            if gif
-              message = {
-                type: 'image',
-                originalContentUrl: replace_to_https(convert_to_jpg(gif.images.fixed_height.url)),
-                previewImageUrl: replace_to_https(convert_to_jpg(gif.images.preview_gif.url))
+            template_json = {
+              'type':'bubble',
+              'hero':{
+                'type':'image',
+                'url':'',
+                'size':'full',
+                'aspectMode':'cover',
+                'action':{
+                  'type':'uri',
+                  'label':'View details',
+                  'uri':'',
+                  'altUri':{
+                    'desktop':''
+                  }
+                }
               }
+            }
+
+            result = api_instance.gifs_search_get(api_key, text, opts)
+            gifs = result.data
+            if gifs&.count == 10
+
+              template_array = gifs.map do |gif|
+                {
+                  'type':'bubble',
+                  'hero':{
+                    'type':'image',
+                    'url':gif.images.fixed_height.url,
+                    'size':'full',
+                    'aspectMode':'cover',
+                    'action':{
+                      'type':'uri',
+                      'label':'View details',
+                      'uri':"#{gif.url}?openExternalBrowser=1",
+                      'altUri':{
+                        'desktop':"#{gif.url}?openExternalBrowser=1"
+                      }
+                    }
+                  }
+                }
+              end
+
+              hash_flex_template = {
+                'type':'carousel',
+                'contents': template_array
+              }
+
+              message = {
+                type: 'flex',
+                altText: '画像を読み込めませんでした。',
+                contents: hash_flex_template
+              }
+
             else
               message = {
                 type: 'text',
@@ -73,10 +109,9 @@ class WebhookController < ApplicationController
           rescue GiphyClient::ApiError => e
             puts "Exception when calling DefaultApi->gifs_search_get: #{e}"
           end
-
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
-           client.reply_message(event['replyToken'], default_message)
+          client.reply_message(event['replyToken'], default_message)
         end
       end
     }
