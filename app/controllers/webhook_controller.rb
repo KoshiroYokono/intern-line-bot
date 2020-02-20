@@ -1,4 +1,6 @@
 require 'line/bot'
+require 'GiphyClient'
+require 'pathname'
 
 class WebhookController < ApplicationController
   protect_from_forgery except: [:callback] # CSRF対策無効化
@@ -43,13 +45,30 @@ class WebhookController < ApplicationController
             text = event.message['text']
             jpg_url = replace_to_https(generate_jpg(text))
 
-            if jpg_url.blank?
-              message = default_message
-            else
+            api_instance = GiphyClient::DefaultApi.new
+            api_key = ENV["GIPHY_API_KEY"]
+
+            opts = {
+              limit: 1,
+              offset: 0,
+              rating: "g",
+              lang: "ja",
+              fmt: "json"
+            }
+
+            result = api_instance.gifs_search_get(api_key, text, opts)
+            gif = result.data[0]
+            if gif
+              p convert_to_jpg(gif.images.preview_gif.url)
               message = {
                 type: 'image',
-                originalContentUrl: jpg_url,
-                previewImageUrl: jpg_url
+                originalContentUrl: replace_to_https(convert_to_jpg(gif.images.fixed_height.url)),
+                previewImageUrl: replace_to_https(convert_to_jpg(gif.images.preview_gif.url))
+              }
+            else
+              message = {
+                type: 'text',
+                text: "画像が見つからんかった\nスマンm(__)m"
               }
             end
 
@@ -87,7 +106,7 @@ class WebhookController < ApplicationController
   end
 
   def convert_to_jpg(url)
-    url.sub(/.gif/,'.jpg')
+    Pathname(url).sub_ext(".jpg").to_s
   end
 
  end
