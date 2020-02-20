@@ -79,7 +79,7 @@ class WebhookController < ApplicationController
                   'action':{
                     'type':'uri',
                     'label':'View details',
-                    'uri':gif.url+'?openExternalBrowser=1',
+                    'uri':"#{gif.url}?openExternalBrowser=1",
                     'altUri':{
                       'desktop':"#{gif.url}?openExternalBrowser=1"
                     }
@@ -95,7 +95,7 @@ class WebhookController < ApplicationController
 
               message = {
                 type: 'flex',
-                altText: '代官テキスト',
+                altText: '画像を読み込めませんでした。',
                 contents: hash_flex_template
               }
 
