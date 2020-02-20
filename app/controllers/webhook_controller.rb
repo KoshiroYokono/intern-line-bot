@@ -48,21 +48,67 @@ class WebhookController < ApplicationController
             api_key = ENV["GIPHY_API_KEY"]
 
             opts = {
-              limit: 1,
+              limit: 10,
               offset: 0,
               rating: "g",
               lang: "ja",
               fmt: "json"
             }
 
-            result = api_instance.gifs_search_get(api_key, text, opts)
-            gif = result.data[0]
-            if gif
-              message = {
-                type: 'image',
-                originalContentUrl: replace_to_https(convert_to_jpg(gif.images.fixed_height.url)),
-                previewImageUrl: replace_to_https(convert_to_jpg(gif.images.preview_gif.url))
+            template_json = {
+              'type':'bubble',
+              'hero':{
+                'type':'image',
+                'url':'',
+                'size':'full',
+                'aspectMode':'cover',
+                'action':{
+                  'type':'uri',
+                  'label':'View details',
+                  'uri':'',
+                  'altUri':{
+                    'desktop':''
+                  }
+                }
               }
+            }
+
+            result = api_instance.gifs_search_get(api_key, text, opts)
+            gifs = result.data
+            if gifs && gifs.count == 10
+
+            hash_flex_template = {
+              'type':'carousel',
+              'contents': []
+            }
+
+              gifs.each do |gif|
+                template_hash = {
+                  'type':'bubble',
+                  'hero':{
+                    'type':'image',
+                    'url':gif.images.fixed_height.url,
+                    'size':'full',
+                    'aspectMode':'cover',
+                    'action':{
+                      'type':'uri',
+                      'label':'View details',
+                      'uri':gif.url+'?openExternalBrowser=1',
+                      'altUri':{
+                        'desktop':gif.url+'?openExternalBrowser=1'
+                      }
+                    }
+                  }
+                }
+                hash_flex_template[:contents].push(template_hash)
+              end
+
+              message = {
+                type: 'flex',
+                altText: '代官テキスト',
+                contents: hash_flex_template
+              }
+
             else
               message = {
                 type: 'text',
