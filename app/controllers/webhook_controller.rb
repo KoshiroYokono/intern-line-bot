@@ -68,25 +68,25 @@ class WebhookController < ApplicationController
             gifs = result.data
             if gifs&.count == 10
 
-            template_array = gifs.map do |gif|
-              {
-                'type':'bubble',
-                'hero':{
-                  'type':'image',
-                  'url':gif.images.fixed_height.url,
-                  'size':'full',
-                  'aspectMode':'cover',
-                  'action':{
-                    'type':'uri',
-                    'label':'View details',
-                    'uri':"#{gif.url}?openExternalBrowser=1",
-                    'altUri':{
-                      'desktop':"#{gif.url}?openExternalBrowser=1"
+              template_array = gifs.map do |gif|
+                {
+                  'type':'bubble',
+                  'hero':{
+                    'type':'image',
+                    'url':gif.images.fixed_height.url,
+                    'size':'full',
+                    'aspectMode':'cover',
+                    'action':{
+                      'type':'uri',
+                      'label':'View details',
+                      'uri':"#{gif.url}?openExternalBrowser=1",
+                      'altUri':{
+                        'desktop':"#{gif.url}?openExternalBrowser=1"
+                      }
                     }
                   }
                 }
-              }
-            end
+              end
 
               hash_flex_template = {
                 'type':'carousel',
@@ -99,12 +99,12 @@ class WebhookController < ApplicationController
                 contents: hash_flex_template
               }
 
-             else
+            else
                message = {
                  type: 'text',
                  text: "画像が見つからんかった\nスマンm(__)m"
                }
-             end
+            end
 
           rescue GiphyClient::ApiError => e
             puts "Exception when calling DefaultApi->gifs_search_get: #{e}"
