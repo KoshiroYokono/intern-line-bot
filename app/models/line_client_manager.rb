@@ -11,7 +11,7 @@ class LineClientManager
       when Line::Bot::Event::Message
         default_message = {
           type: 'text',
-          text: "そのメッセージには対応していないんや。\nスマン m(__)m"
+          text: "そのメッセージには対応していないんや。\nスマンm(__)m"
         }
         case event.type
         when Line::Bot::Event::MessageType::Text

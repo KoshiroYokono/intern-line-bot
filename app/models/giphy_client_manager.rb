@@ -35,6 +35,10 @@ class GiphyClientManager
       end
     rescue GiphyClient::ApiError => e
       puts "Exception when calling DefaultApi->gifs_search_get: #{e}"
+        return {
+          type: 'text',
+          text: "検索がうまくいかんかった\nスマンm(__)m"
+        }
     end
   end
 
