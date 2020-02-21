@@ -1,8 +1,22 @@
 require 'pathname'
 
 class FlexMessageTemplate
-  def initialize
+  attr_reader :gifs
+  def initialize(gifs)
+    @gifs = gifs
   end
+
+  def generate_flex_template
+    template_array = gifs.map do |gif|
+      generate_divisional_flex_template(gif)
+    end
+    hash_flex_template = {
+      'type':'carousel',
+      'contents': template_array
+    }
+  end
+
+  private
 
   def generate_divisional_flex_template(gif)
     url = replace_to_https(convert_to_jpg(gif.images.fixed_height.url))
@@ -25,14 +39,6 @@ class FlexMessageTemplate
       }
     }
   end
-
-  def generate_flex_template(gifs)
-    gifs.map do |gif|
-      generate_divisional_flex_template(gif)
-    end
-  end
-
-  private
 
   def replace_to_https(url)
     url.sub(/http:/, 'https:')

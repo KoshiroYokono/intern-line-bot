@@ -2,7 +2,6 @@ require 'GiphyClient'
 
 class GiphyClientManager
   attr_reader :text
-  @@client = GiphyClient::DefaultApi.new
   APIKEY = ENV["GIPHY_API_KEY"]
   API_SEARCH_OPTIONS = {
     limit: 10,
@@ -16,23 +15,13 @@ class GiphyClientManager
     @text = text
   end
 
-  def self.client
-    @@client
-  end
-
   def message_hash
     begin
-      giphy_client = GiphyClientManager.client
+      giphy_client = GiphyClient::DefaultApi.new
       gifs = giphy_client.gifs_search_get(APIKEY, @text, API_SEARCH_OPTIONS).data
-      if gifs&.count == 10
-        flex_message = FlexMessageTemplate.new
-        template_array = gifs.map do |gif|
-          flex_message.generate_divisional_flex_template(gif)
-        end
-        hash_flex_template = {
-          'type':'carousel',
-          'contents': template_array
-        }
+      if gifs
+        flex_message = FlexMessageTemplate.new(gifs)
+        hash_flex_template = flex_message.generate_flex_template
         return {
           type: 'flex',
           altText: '画像を読み込めませんでした。',
