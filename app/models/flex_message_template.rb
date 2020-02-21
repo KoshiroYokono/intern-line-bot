@@ -20,7 +20,7 @@ class FlexMessageTemplate
 
   def generate_divisional_flex_template(gif)
     url = replace_to_https(convert_to_jpg(gif.images.fixed_height.url))
-    uri = replace_to_https(convert_to_jpg(gif.url))
+    uri = replace_to_https(gif.url)
     {
       'type':'bubble',
       'hero':{
