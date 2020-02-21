@@ -1,5 +1,4 @@
 require 'line/bot'
-require 'pathname'
 
 class WebhookController < ApplicationController
   protect_from_forgery except: [:callback] # CSRF対策無効化
@@ -30,8 +29,8 @@ class WebhookController < ApplicationController
         case event.type
         when Line::Bot::Event::MessageType::Text
           text = event.message['text']
-          giphy_client_manager = GiphyClientManager.new
-          message = giphy_client_manager.message_hash(text)
+          giphy_client_manager = GiphyClientManager.new(text)
+          message = giphy_client_manager.message_hash
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
           client.reply_message(event['replyToken'], default_message)

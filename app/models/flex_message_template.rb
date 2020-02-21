@@ -1,3 +1,5 @@
+require 'pathname'
+
 class FlexMessageTemplate
   def initialize
   end
@@ -22,6 +24,12 @@ class FlexMessageTemplate
        }
       }
     }
+  end
+
+  def generate_flex_template(gifs)
+    gifs.map do |gif|
+      generate_divisional_flex_template(gif)
+    end
   end
 
   private

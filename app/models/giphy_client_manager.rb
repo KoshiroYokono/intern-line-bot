@@ -1,6 +1,7 @@
 require 'GiphyClient'
 
 class GiphyClientManager
+  attr_reader :text
   @@client = GiphyClient::DefaultApi.new
   APIKEY = ENV["GIPHY_API_KEY"]
   API_SEARCH_OPTIONS = {
@@ -11,14 +12,18 @@ class GiphyClientManager
     fmt: "json"
   }
 
+  def initialize(text)
+    @text = text
+  end
+
   def self.client
     @@client
   end
 
-  def message_hash(text)
+  def message_hash
     begin
       giphy_client = GiphyClientManager.client
-      gifs = giphy_client.gifs_search_get(APIKEY, text, API_SEARCH_OPTIONS).data
+      gifs = giphy_client.gifs_search_get(APIKEY, @text, API_SEARCH_OPTIONS).data
       if gifs&.count == 10
         flex_message = FlexMessageTemplate.new
         template_array = gifs.map do |gif|
