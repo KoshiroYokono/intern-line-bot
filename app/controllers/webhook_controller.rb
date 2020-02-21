@@ -1,5 +1,4 @@
 require 'line/bot'
-require 'GiphyClient'
 require 'pathname'
 
 class WebhookController < ApplicationController
@@ -30,85 +29,9 @@ class WebhookController < ApplicationController
         }
         case event.type
         when Line::Bot::Event::MessageType::Text
-
-          begin
-            #Search Endpoint
-            text = event.message['text']
-
-            api_instance = GiphyClient::DefaultApi.new
-            api_key = ENV["GIPHY_API_KEY"]
-
-            opts = {
-              limit: 10,
-              offset: 0,
-              rating: "g",
-              lang: "ja",
-              fmt: "json"
-            }
-
-            template_json = {
-              'type':'bubble',
-              'hero':{
-                'type':'image',
-                'url':'',
-                'size':'full',
-                'aspectMode':'cover',
-                'action':{
-                  'type':'uri',
-                  'label':'View details',
-                  'uri':'',
-                  'altUri':{
-                    'desktop':''
-                  }
-                }
-              }
-            }
-
-            result = api_instance.gifs_search_get(api_key, text, opts)
-            gifs = result.data
-            if gifs&.count == 10
-
-              template_array = gifs.map do |gif|
-                {
-                  'type':'bubble',
-                  'hero':{
-                    'type':'image',
-                    'url':gif.images.fixed_height.url,
-                    'size':'full',
-                    'aspectMode':'cover',
-                    'action':{
-                      'type':'uri',
-                      'label':'View details',
-                      'uri':"#{gif.url}?openExternalBrowser=1",
-                      'altUri':{
-                        'desktop':"#{gif.url}?openExternalBrowser=1"
-                      }
-                    }
-                  }
-                }
-              end
-
-              hash_flex_template = {
-                'type':'carousel',
-                'contents': template_array
-              }
-
-              message = {
-                type: 'flex',
-                altText: '画像を読み込めませんでした。',
-                contents: hash_flex_template
-              }
-
-            else
-              message = {
-                type: 'text',
-                text: "画像が見つからんかった\nスマンm(__)m"
-              }
-            end
-
-          rescue GiphyClient::ApiError => e
-            puts "Exception when calling DefaultApi->gifs_search_get: #{e}"
-          end
+          text = event.message['text']
+          giphy_client_manager = GiphyClientManager.new
+          message = giphy_client_manager.message_hash(text)
           client.reply_message(event['replyToken'], message)
         when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
           client.reply_message(event['replyToken'], default_message)
@@ -116,14 +39,6 @@ class WebhookController < ApplicationController
       end
     }
     head :ok
-  end
-
-  def replace_to_https(url)
-    url.sub(/http:/, 'https:')
-  end
-
-  def convert_to_jpg(url)
-    Pathname(url).sub_ext(".jpg").to_s
   end
 
  end
